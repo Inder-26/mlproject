@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 import dill
 from sklearn.metrics import r2_score
+from sklearn.model_selection import GridSearchCV
+
 
 from src.exception import CustomException
 
@@ -16,23 +18,34 @@ def save_object(file_path, obj):
     except Exception as e:
         raise CustomException(e, sys)
 
-def evaluate_model(X_train, X_test, y_train, y_test, models):
+def evaluate_model(X_train, X_test, y_train, y_test, models, param):
     try:
         report = {}
-        for i in range(len(models)):
+
+        for i in range(len(list(models))):
             model = list(models.values())[i]
-            model.fit(X_train, y_train)
+            para = param[list(models.keys())[i]]
 
-            # Predicting the test set results
-            y_train_pred = model.predict(X_train)
-            y_test_pred = model.predict(X_test)
+            # 1. Run Grid Search
+            gs = GridSearchCV(model, para, cv=3)
+            gs.fit(X_train, y_train)
 
-            # Getting the r2 score for the model
-            train_model_score = r2_score(y_train, y_train_pred)
+            # 2. Use the BEST estimator found (this avoids the CatBoost error)
+            best_model = gs.best_estimator_
+
+            # 3. Train the best model one last time
+            best_model.fit(X_train, y_train)
+
+            # 4. Predict using the best model
+            y_train_pred = best_model.predict(X_train)
+            y_test_pred = best_model.predict(X_test)
+
+            # 5. Calculate Score
             test_model_score = r2_score(y_test, y_test_pred)
 
             report[list(models.keys())[i]] = test_model_score
 
         return report
+
     except Exception as e:
         raise CustomException(e, sys)
