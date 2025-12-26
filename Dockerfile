@@ -1,5 +1,5 @@
-# Use the exact Python version you used for development
-FROM python:3.11.9-slim
+# Use the AWS ECR Public mirror to avoid Docker Hub rate limits
+FROM public.ecr.aws/docker/library/python:3.11.9-slim
 
 WORKDIR /app
 
