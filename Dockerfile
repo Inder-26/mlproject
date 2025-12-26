@@ -1,15 +1,16 @@
-# Use the AWS ECR Public mirror to avoid Docker Hub rate limits
 FROM public.ecr.aws/docker/library/python:3.11.9-slim
 
 WORKDIR /app
 
-# Copy requirements and install
+# 1. Copy requirements first to use Docker cache
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy project files
+# 2. Copy the entire project (includes artifacts/ and .pkl files)
 COPY . .
 
-# Expose port and start with Gunicorn
+# 3. Expose port 8080 for Elastic Beanstalk
 EXPOSE 8080
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "app:app"]
+
+# 4. Start with Debug logs and a longer timeout for ML processing
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "1", "--threads", "8", "--timeout", "120", "--log-level", "debug", "app:app"]
