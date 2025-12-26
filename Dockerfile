@@ -13,4 +13,4 @@ COPY . .
 EXPOSE 8080
 
 # 4. Start with Debug logs and a longer timeout for ML processing
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "1", "--threads", "8", "--timeout", "120", "--log-level", "debug", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--timeout", "120", "--preload", "--log-level", "debug", "app:app"]
